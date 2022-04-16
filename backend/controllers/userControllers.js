@@ -12,6 +12,9 @@ const registerUser = asyncHandler(async (req, res) => {
   const userExist = await User.findOne({ email });
 
   if (userExist) {
+    res.status(404).json({
+      message: `Hi ${userExist.name} kindly login`,
+    });
     throw new Error(`Hi ${userExist.name} kindly login`);
   }
 
@@ -31,6 +34,9 @@ const registerUser = asyncHandler(async (req, res) => {
       token: generateToken(user._id),
     });
   } else {
+    res.status(400).json({
+      message: "Failed to Create User",
+    });
     throw new Error("Failed to Create User");
   }
 });
@@ -39,7 +45,9 @@ const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    res.status(400);
+    res.status(400).json({
+      message: "Fill all required fields",
+    });
     throw new Error("Fill all required fields");
   }
 
@@ -54,7 +62,9 @@ const authUser = asyncHandler(async (req, res) => {
       token: generateToken(user._id),
     });
   } else {
-    res.status(401);
+    res.status(401).json({
+      message: "Invalid Email or Password",
+    });
     throw new Error("Invalid Email or Password");
   }
 });

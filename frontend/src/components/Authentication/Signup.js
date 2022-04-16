@@ -31,6 +31,8 @@ const Signup = () => {
         isClosable: true,
         position: "bottom",
       });
+
+      return;
     }
 
     if (pics.type === "image/jpeg" || pics.type === "image/png") {
@@ -76,6 +78,7 @@ const Signup = () => {
       });
 
       setLoading(false);
+      return;
     }
 
     if (password !== confirmpassword) {
@@ -88,6 +91,8 @@ const Signup = () => {
       });
 
       setLoading(false);
+
+      return;
     }
 
     try {
@@ -97,11 +102,13 @@ const Signup = () => {
         },
       };
 
-      const { data } = axios.post(
+      const { data } = await axios.post(
         "http://localhost:5000/api/v1/users/",
         { name, email, password, pic },
         config
       );
+
+      console.log(data);
 
       toast({
         title: "Registration successful",
@@ -136,7 +143,7 @@ const Signup = () => {
           onChange={(e) => setName(e.target.value)}
         />
       </FormControl>
-      <FormControl id="email" isRequired>
+      <FormControl isRequired>
         <FormLabel>Email Address</FormLabel>
         <Input
           type="email"
@@ -144,7 +151,7 @@ const Signup = () => {
           onChange={(e) => setEmail(e.target.value)}
         />
       </FormControl>
-      <FormControl id="password" isRequired>
+      <FormControl isRequired>
         <FormLabel>Password</FormLabel>
         <InputGroup size="md">
           <Input
@@ -159,7 +166,7 @@ const Signup = () => {
           </InputRightElement>
         </InputGroup>
       </FormControl>
-      <FormControl id="password" isRequired>
+      <FormControl isRequired>
         <FormLabel>Confirm Password</FormLabel>
         <InputGroup size="md">
           <Input
@@ -188,7 +195,7 @@ const Signup = () => {
         width="100%"
         style={{ marginTop: 15 }}
         onClick={submitHandler}
-        isloading={loading}
+        isLoading={loading}
       >
         Sign Up
       </Button>

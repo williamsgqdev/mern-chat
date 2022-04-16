@@ -12,8 +12,8 @@ const Login = () => {
   const handleClick = () => setShow(!show);
   const toast = useToast();
   const navigate = useNavigate();
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const submitHandler = async () => {
@@ -29,6 +29,7 @@ const Login = () => {
       });
 
       setLoading(false);
+      return;
     }
 
     try {
@@ -38,7 +39,7 @@ const Login = () => {
         },
       };
 
-      const { data } = axios.post(
+      const { data } = await axios.post(
         "http://localhost:5000/api/v1/users/login",
         { email, password },
         config
@@ -65,6 +66,7 @@ const Login = () => {
         position: "bottom",
       });
 
+      console.log(error);
       setLoading(false);
     }
   };

@@ -13,6 +13,7 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
+  Spinner,
   Text,
   Tooltip,
   useDisclosure,
@@ -102,6 +103,10 @@ const SideBar = () => {
         { userId },
         config
       );
+
+      if (!chats.find((c) => c._id === data._id)) {
+        setChats([data, ...chats]);
+      }
       console.log(data);
       setSelectedChat(data);
       setLoadingChat(false);
@@ -109,8 +114,8 @@ const SideBar = () => {
     } catch (error) {
       console.log(error);
       toast({
-        title: "Error Occured",
-        description: "request failed check network connection",
+        title: "Error fetching chats",
+        description: error.message,
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -194,6 +199,8 @@ const SideBar = () => {
                 />
               ))
             )}
+
+            {loadingChat && <Spinner ml="auto" d="flex" />}
           </DrawerBody>
         </DrawerContent>
       </Drawer>

@@ -27,6 +27,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ChatLoading from "./ChatLoading";
 import UserListItem from "./UserListItem";
+import { getSender } from "../../config/ChatLogics";
+import NotificationBadge, { Effect } from "react-notification-badge";
 
 const SideBar = () => {
   const [search, setSearch] = useState("");
@@ -37,7 +39,14 @@ const SideBar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
-  const { user, setSelectedChat, chats, setChats } = ChatState();
+  const {
+    user,
+    setSelectedChat,
+    chats,
+    setChats,
+    notifications,
+    setNotifications,
+  } = ChatState();
   const logoutHandler = () => {
     localStorage.removeItem("user");
     navigate("/");
@@ -150,9 +159,33 @@ const SideBar = () => {
         <Box>
           <Menu>
             <MenuButton p={1}>
+              <NotificationBadge
+                count={notifications.length}
+                effect={Effect.SCALE}
+              />
               <BellIcon fontSize="2xl" m={1} color="blue.500" />
             </MenuButton>
-            {/* <MenuList></MenuList> */}
+            <MenuList pl={2}>
+              {!notifications.length && "No new messages"}
+              {notifications.map((notification) => (
+                <MenuItem
+                  key={notification._id}
+                  onClick={() => {
+                    setSelectedChat(notification.chat);
+                    setNotifications(
+                      notifications.filter((n) => n !== notification)
+                    );
+                  }}
+                >
+                  {notification.chat.isGroupChat
+                    ? `New Message in ${notification.chatName}`
+                    : `New Message from ${getSender(
+                        user,
+                        notification.chat.users
+                      )}`}
+                </MenuItem>
+              ))}
+            </MenuList>
           </Menu>
           <Menu>
             <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>

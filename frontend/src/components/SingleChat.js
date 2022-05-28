@@ -8,7 +8,7 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ChatState } from "../context/ChatProvider";
 import { getSender, getSenderObj } from "../config/ChatLogics";
 import ProfileModal from "./Miscellaneous/ProfileModal";
@@ -17,6 +17,8 @@ import axios from "axios";
 import "../styles/styles.css";
 import ScrollableChat from "./ScrollableChat";
 import io from "socket.io-client";
+import Lottie from "react-lottie";
+import animationData from "../animations/typing.json";
 
 const ENDPOINT = "http://localhost:5000";
 let socket, selectedChatCompare;
@@ -28,6 +30,14 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: animationData,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
 
   const { user, selectedChat, setSelectedChat } = ChatState();
   const toast = useToast();
@@ -63,6 +73,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   };
   const sendMessage = async (e) => {
     if (e.key === "Enter" && newMessage) {
+      socket.emit("stop typing", selectedChat._id);
       try {
         const config = {
           headers: {
@@ -97,15 +108,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
   };
 
-  const typingHandler = (e) => {
-    setNewMessage(e.target.value);
-  };
-
   useEffect(() => {
     socket = io(ENDPOINT);
     socket.emit("setup", user);
-    socket.on("connection", () => setSocketConnected(true));
-    socket.on("typ")
+    socket.on("connected", () => setSocketConnected(true));
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stop typing", () => setIsTyping(false));
   }, [user]);
 
   useEffect(() => {
@@ -124,6 +132,30 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       setMessages([...messages, newMessageReceived]);
     });
   });
+  const typingHandler = (e) => {
+    setNewMessage(e.target.value);
+
+    if (!socketConnected) return;
+
+    if (!typing) {
+      setTyping(true);
+      socket.emit("typing", selectedChat._id);
+    }
+
+    let lastTypingTime = new Date().getTime();
+
+    let timer = 3000;
+
+    setTimeout(() => {
+      let currentTime = new Date().getTime();
+      let timeDiff = currentTime - lastTypingTime;
+
+      if (timeDiff >= timer && typing) {
+        socket.emit("stop typing", selectedChat._id);
+        setTyping(false);
+      }
+    }, timer);
+  };
 
   return (
     <>
@@ -182,11 +214,22 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 margin="auto"
               />
             ) : (
-              <div style={{ overflowY: "scroll" }}>
+              <div className="messages">
                 <ScrollableChat messages={messages} />
               </div>
             )}
             <FormControl onKeyDown={sendMessage} isRequired mt={3}>
+              {isTyping ? (
+                <div>
+                  <Lottie
+                    options={defaultOptions}
+                    width={70}
+                    style={{ marginBottom: 15, marginLeft: 0 }}
+                  />
+                </div>
+              ) : (
+                <></>
+              )}
               <Input
                 variant="filled"
                 bg="#e0e0e0"
